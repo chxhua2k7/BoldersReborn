@@ -489,21 +489,12 @@ static id lastIconSuccess = nil;
 
 	layout.layoutConfiguration.check = true;
 
-	NSUInteger previewColumns, previewRows;
 	if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-		previewColumns = 4;
-		previewRows = MIN(rows, 5);
+		layout.layoutConfiguration.numberOfPortraitColumns = 4;
+		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 5);
 	} else {
-		previewColumns = 3;
-		previewRows = MIN(rows, 4);
-	}
-
-	layout.layoutConfiguration.numberOfPortraitColumns = previewColumns;
-	layout.layoutConfiguration.numberOfPortraitRows = previewRows;
-
-	// 超出縮圖格數的 icon 不畫，避免噴出資料夾圖示外
-	if (index >= previewColumns * previewRows) {
-		return CGRectZero;
+		layout.layoutConfiguration.numberOfPortraitColumns = 3;
+		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 4);
 	}
 
 	return %orig;

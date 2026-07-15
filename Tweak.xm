@@ -17,6 +17,7 @@ static BOOL deviceIsInLandscapeMode(void) {
 }
 
 static CGFloat kPaddingArray[] = { 0, 8, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5 };
+#define kPreviewGridSize ((NSUInteger)(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad ? 4 : 3))
 
 static id lastIconSuccess = nil;
 
@@ -442,7 +443,6 @@ static id lastIconSuccess = nil;
 
 %hook SBIconGridImage
 
-// Makes sure the 'check' is passed so that the folder icon is properly patched up
 - (SBIconListGridLayout *)listLayout {
 	SBIconListGridLayout *orig = %orig;
 
@@ -451,7 +451,7 @@ static id lastIconSuccess = nil;
 	return orig;
 }
 
-// Makes the folder icon always 3x3 or 3x4 no matter what, matching the original Bolders's looks
+// 縮圖固定為正方形網格（iPhone 3x3 / iPad 4x4），不跟著 rows/columns 變動
 - (void)setListLayout:(SBIconListGridLayout *)listLayout {
 	SBIconListGridLayout *orig = listLayout;
 	orig.layoutConfiguration.check = true;
@@ -459,13 +459,8 @@ static id lastIconSuccess = nil;
 	if (orig.layoutConfiguration.numberOfPortraitColumns == 2) {
 		orig.layoutConfiguration.numberOfPortraitRows = 2;
 	} else {
-		if (rows >= 4) {
-			orig.layoutConfiguration.numberOfPortraitRows = 4;
-		}
-
-		if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad && rows == 3) {
-			orig.layoutConfiguration.numberOfPortraitRows = 3;
-		}
+		orig.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+		orig.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 	}
 
 	%orig(orig);
@@ -488,13 +483,12 @@ static id lastIconSuccess = nil;
 	}
 
 	layout.layoutConfiguration.check = true;
+	layout.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+	layout.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 
-	if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-		layout.layoutConfiguration.numberOfPortraitColumns = 4;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 5);
-	} else {
-		layout.layoutConfiguration.numberOfPortraitColumns = 3;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 4);
+	// 超出縮圖格數的 icon 不畫，避免噴出資料夾圖示外
+	if (index >= kPreviewGridSize * kPreviewGridSize) {
+		return CGRectZero;
 	}
 
 	return %orig;
@@ -507,14 +501,8 @@ static id lastIconSuccess = nil;
 	}
 
 	layout.layoutConfiguration.check = true;
-
-	if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-		layout.layoutConfiguration.numberOfPortraitColumns = 4;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 5);
-	} else {
-		layout.layoutConfiguration.numberOfPortraitColumns = 3;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 4);
-	}
+	layout.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+	layout.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 
 	return %orig;
 }
@@ -526,14 +514,8 @@ static id lastIconSuccess = nil;
 	}
 
 	layout.layoutConfiguration.check = true;
-
-	if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-		layout.layoutConfiguration.numberOfPortraitColumns = 4;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 5);
-	} else {
-		layout.layoutConfiguration.numberOfPortraitColumns = 3;
-		layout.layoutConfiguration.numberOfPortraitRows = MIN(rows, 4);
-	}
+	layout.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+	layout.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 
 	return %orig;
 }
@@ -543,8 +525,6 @@ static id lastIconSuccess = nil;
 
 %hook SBFolderIconImageCache
 
-// Makes sure the 'check' is passed so that the folder icon is properly patched up, also
-// Makes the folder icon always 3x3 or 3x4 no matter what, matching the original Bolders's looks
 - (SBIconListGridLayout *)listLayout {
 	SBIconListGridLayout *orig = %orig;
 
@@ -553,19 +533,13 @@ static id lastIconSuccess = nil;
 	if (orig.layoutConfiguration.numberOfPortraitColumns == 2) {
 		orig.layoutConfiguration.numberOfPortraitRows = 2;
 	} else {
-		if (rows >= 4) {
-			orig.layoutConfiguration.numberOfPortraitRows = 4;
-		}
-
-		if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad && rows == 3) {
-			orig.layoutConfiguration.numberOfPortraitRows = 3;
-		}
+		orig.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+		orig.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 	}
 
 	return orig;
 }
 
-// Makes the folder icon always 3x3 or 3x4 no matter what, matching the original Bolders's looks
 - (void)setListLayout:(SBIconListGridLayout *)listLayout {
 	SBIconListGridLayout *orig = listLayout;
 	orig.layoutConfiguration.check = true;
@@ -573,13 +547,8 @@ static id lastIconSuccess = nil;
 	if (orig.layoutConfiguration.numberOfPortraitColumns == 2) {
 		orig.layoutConfiguration.numberOfPortraitRows = 2;
 	} else {
-		if (rows >= 4) {
-			orig.layoutConfiguration.numberOfPortraitRows = 4;
-		}
-
-		if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad && rows == 3) {
-			orig.layoutConfiguration.numberOfPortraitRows = 3;
-		}
+		orig.layoutConfiguration.numberOfPortraitColumns = kPreviewGridSize;
+		orig.layoutConfiguration.numberOfPortraitRows = kPreviewGridSize;
 	}
 
 	%orig(orig);
